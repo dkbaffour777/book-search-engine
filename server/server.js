@@ -1,4 +1,49 @@
 const express = require('express');
+// import ApolloServer
+const { ApolloServer, gql } = require('apollo-server-express');
+
+// import our typeDefs and resolvers
+const { typeDefs, resolvers } = require('./schemas');
+const db = require('./config/connection');
+
+(async ()=> {
+
+  const server = new ApolloServer({ typeDefs, resolvers });
+  await server.start();
+
+  const app = express();
+  const PORT = process.env.PORT || 3001;
+
+  server.applyMiddleware({ app });
+
+  app.use(express.urlencoded({ extended: false }));
+  app.use(express.json());
+
+  
+  await new Promise(resolve => 
+    db.once('open', () => {
+      app.listen(PORT, () => console.log(`🌍 Now listening on localhost:${PORT}`, resolve));
+      console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`);
+    })
+  );
+  return { server, app };
+})()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* const express = require('express');
 const path = require('path');
 const db = require('./config/connection');
 const routes = require('./routes');
@@ -19,3 +64,4 @@ app.use(routes);
 db.once('open', () => {
   app.listen(PORT, () => console.log(`🌍 Now listening on localhost:${PORT}`));
 });
+ */
