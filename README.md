@@ -4,7 +4,7 @@
 
    A book search engine web application where books can be searched and saved for purchase. Technologies/tools used in this project are React.js, mongoDB, Node.js/Express.js, GraphQl, Apollo Server Express.
 
-  Deployed link - https://dk777-book-search-engine.herokuapp.com/
+  Deployed link - https://dkb777-book-search-engine.herokuapp.com/
 
 !['app'](assets/images/app.PNG)
   
