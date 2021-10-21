@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation } from '@apollo/react-hooks';
 
-import { Jumbotron, Container, Col, Form, Button, Card, CardColumns } from 'react-bootstrap';
+import { Jumbotron, Container, Col, Form, Button, CardColumns } from 'react-bootstrap';
 
 import Auth from '../utils/auth';
 import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
 import { SAVE_BOOK } from '../utils/mutations';
-import { SelectedBookContext, BookModalContext } from '../utils/context';
+import CustomCard from '../components/CustomeCard';
 
 const SearchBooks = () => {
   // create state for holding returned google api data
@@ -30,7 +30,7 @@ const SearchBooks = () => {
   useEffect(() => {
     return () => saveBookIds(savedBookIds);
   }, [savedBookIds]);
-  
+
   // create method to search for books and set state on form submit
   const handleFormSubmit = async (event) => {
     event.preventDefault();
@@ -125,53 +125,14 @@ const SearchBooks = () => {
         <CardColumns>
           {searchedBooks.map((book) => {
             return (
-              <Card key={book.bookId}>
-                {book.image ? (
-                  <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' style={{ height: "300px" }} />
-                ) : null}
-                <Card.Body>
-                  <Card.Title style={{ fontWeight: "300" }}>{book.title}</Card.Title>
-                  <p className='small'>Authors: {book.authors}</p>
-                  <Card.Text>
-                    {book.description?.substr(0, 50)}
-                    {book.description?.length && "...   "}
-                    {
-                      book.description?.length &&
-                      <BookModalContext.Consumer>
-                        {({show, setShow})=> (
-                          <SelectedBookContext.Consumer>
-                            {({setSelectedBook})=> (
-                              <small
-                                onClick={() => 
-                                  setSelectedBook(()=> {
-                                    setShow(!show);
-                                    return searchedBooks.filter(_book => _book.bookId === book.bookId)[0];
-                                  })
-                                }
-                                style={{ cursor: "pointer" }}
-                              >
-                                read more
-                              </small>
-                            )}
-                          </SelectedBookContext.Consumer>
-                        )}
-                      </BookModalContext.Consumer>
-                    }
-                  </Card.Text>
-                  {Auth.loggedIn() && (
-                    <Button
-                      disabled={savedBookIds?.some((savedBookId) => savedBookId === book.bookId)}
-                      className='btn-block btn-info'
-                      onClick={() => {
-                        handleSaveBook(book.bookId)
-                      }}>
-                      {savedBookIds?.some((savedBookId) => savedBookId === book.bookId)
-                        ? 'This book has already been saved!'
-                        : 'Save this Book!'}
-                    </Button>
-                  )}
-                </Card.Body>
-              </Card>
+              <CustomCard
+                key={book.bookId}
+                book={book}
+                allBooks={searchedBooks}
+                component="searched book"
+                savedBookIds={savedBookIds}
+                handleSaveBook={handleSaveBook}
+              />
             );
           })}
         </CardColumns>

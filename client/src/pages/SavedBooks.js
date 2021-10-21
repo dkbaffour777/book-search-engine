@@ -1,13 +1,13 @@
 import React from 'react';
 import { useQuery, useMutation } from '@apollo/react-hooks';
-import { Jumbotron, Container, CardColumns, Card, Button } from 'react-bootstrap';
+import { Jumbotron, Container, CardColumns } from 'react-bootstrap';
 
 import { GET_ME } from '../utils/queries';
 import { REMOVE_BOOK } from '../utils/mutations';
 
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
-import { SelectedBookContext, BookModalContext } from '../utils/context';
+import CustomCard from '../components/CustomeCard';
 
 const SavedBooks = () => {
 
@@ -59,42 +59,13 @@ const SavedBooks = () => {
         <CardColumns>
           {userData.savedBooks?.map((book) => {
             return (
-              <Card key={book.bookId}>
-                {book.image ? <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top'  style={{height: "300px"}}/> : null}
-                <Card.Body>
-                  <Card.Title>{book.title}</Card.Title>
-                  <p className='small'>Authors: {book.authors}</p>
-                  <Card.Text>
-                    {book.description?.substr(0, 50)}
-                    {book.description?.length && "...   "}
-                    {
-                      book.description?.length &&
-                      <BookModalContext.Consumer>
-                        {({show, setShow})=> (
-                          <SelectedBookContext.Consumer>
-                            {({setSelectedBook})=> (
-                              <small
-                                onClick={() => 
-                                  setSelectedBook(()=> {
-                                    setShow(!show);
-                                    return userData.savedBooks?.filter(_book => _book.bookId === book.bookId)[0];
-                                  })
-                                }
-                                style={{ cursor: "pointer" }}
-                              >
-                                read more
-                              </small>
-                            )}
-                          </SelectedBookContext.Consumer>
-                        )}
-                      </BookModalContext.Consumer>
-                    }
-                  </Card.Text>
-                  <Button className='btn-block btn-danger' onClick={() => handleDeleteBook(book.bookId)}>
-                    Delete this Book!
-                  </Button>
-                </Card.Body>
-              </Card>
+              <CustomCard
+                key={book.bookId}
+                book={book}
+                allBooks={userData.savedBooks}
+                component="saved book"
+                handleDeleteBook={handleDeleteBook}
+              />
             );
           })}
         </CardColumns>
