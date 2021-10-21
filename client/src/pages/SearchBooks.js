@@ -11,9 +11,13 @@ import { SAVE_BOOK } from '../utils/mutations';
 const SearchBooks = () => {
   // create state for holding returned google api data
   const [searchedBooks, setSearchedBooks] = useState([]);
+
   // create state for holding our search field data
   const [searchInput, setSearchInput] = useState('');
 
+  // store the searched item
+  const [searchedItem, setSearchedItem] = useState('');
+  
   // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
 
@@ -32,7 +36,7 @@ const SearchBooks = () => {
 
     if (!searchInput) {
       return false;
-    }
+    }else setSearchedItem(searchInput)
 
     try {
       const response = await searchGoogleBooks(searchInput);
@@ -111,22 +115,27 @@ const SearchBooks = () => {
       </Jumbotron>
 
       <Container>
-        <h2>
-          {searchedBooks.length
-            ? `Viewing ${searchedBooks.length} results:`
-            : 'Search for a book to begin'}
-        </h2>
+      {searchedBooks.length
+        ? <h2 className="pb-5">
+            Viewing {searchedBooks.length} results for 
+            <span style={{fontStyle: "italic", fontWeight: "200"}}> "{searchedItem}"</span>
+          </h2>
+        : <h2 className="text-center p-6" style={{color: "rgba(0,0,0, .2)"}}>Search for a book to begin</h2>}
         <CardColumns>
           {searchedBooks.map((book) => {
             return (
-              <Card key={book.bookId} border='dark'>
+              <Card key={book.bookId}>
                 {book.image ? (
-                  <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' />
+                  <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' style={{height: "300px"}}/>
                 ) : null}
                 <Card.Body>
-                  <Card.Title>{book.title}</Card.Title>
+                  <Card.Title style={{fontWeight: "300"}}>{book.title}</Card.Title>
                   <p className='small'>Authors: {book.authors}</p>
-                  <Card.Text>{book.description}</Card.Text>
+                  <Card.Text>
+                    {book.description?.substr(0, 50)}
+                    {book.description?.length && "...   "}
+                    {book.description?.length && <small>read more</small>}
+                  </Card.Text>
                   {Auth.loggedIn() && (
                     <Button
                       disabled={savedBookIds?.some((savedBookId) => savedBookId === book.bookId)}
