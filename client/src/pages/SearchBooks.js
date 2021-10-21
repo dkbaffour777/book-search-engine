@@ -7,6 +7,7 @@ import Auth from '../utils/auth';
 import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
 import { SAVE_BOOK } from '../utils/mutations';
+import { SelectedBookContext, BookModalContext } from '../utils/context';
 
 const SearchBooks = () => {
   // create state for holding returned google api data
@@ -17,7 +18,7 @@ const SearchBooks = () => {
 
   // store the searched item
   const [searchedItem, setSearchedItem] = useState('');
-  
+
   // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
 
@@ -28,15 +29,15 @@ const SearchBooks = () => {
   // learn more here: https://reactjs.org/docs/hooks-effect.html#effects-with-cleanup
   useEffect(() => {
     return () => saveBookIds(savedBookIds);
-  });
-
+  }, [savedBookIds]);
+  
   // create method to search for books and set state on form submit
   const handleFormSubmit = async (event) => {
     event.preventDefault();
 
     if (!searchInput) {
       return false;
-    }else setSearchedItem(searchInput)
+    } else setSearchedItem(searchInput)
 
     try {
       const response = await searchGoogleBooks(searchInput);
@@ -51,7 +52,7 @@ const SearchBooks = () => {
         bookId: book.id,
         authors: book.volumeInfo.authors || ['No author to display'],
         title: book.volumeInfo.title,
-        description: book.volumeInfo.description,
+        description: book.volumeInfo.description || "",
         image: book.volumeInfo.imageLinks?.thumbnail || '',
         link: book.volumeInfo.infoLink || '',
       }));
@@ -77,7 +78,7 @@ const SearchBooks = () => {
 
     try {
       await saveBook({
-        variables: {...bookToSave}
+        variables: { ...bookToSave }
       });
 
       // if book successfully saves to user's account, save book id to state
@@ -115,32 +116,55 @@ const SearchBooks = () => {
       </Jumbotron>
 
       <Container>
-      {searchedBooks.length
-        ? <h2 className="pb-5">
-            Viewing {searchedBooks.length} results for 
-            <span style={{fontStyle: "italic", fontWeight: "200"}}> "{searchedItem}"</span>
+        {searchedBooks.length
+          ? <h2 className="pb-5">
+            Viewing {searchedBooks.length} results for
+            <span style={{ fontStyle: "italic", fontWeight: "200" }}> "{searchedItem}"</span>
           </h2>
-        : <h2 className="text-center p-6" style={{color: "rgba(0,0,0, .2)"}}>Search for a book to begin</h2>}
+          : <h2 className="text-center p-6" style={{ color: "rgba(0,0,0, .2)" }}>Search for a book to begin</h2>}
         <CardColumns>
           {searchedBooks.map((book) => {
             return (
               <Card key={book.bookId}>
                 {book.image ? (
-                  <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' style={{height: "300px"}}/>
+                  <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' style={{ height: "300px" }} />
                 ) : null}
                 <Card.Body>
-                  <Card.Title style={{fontWeight: "300"}}>{book.title}</Card.Title>
+                  <Card.Title style={{ fontWeight: "300" }}>{book.title}</Card.Title>
                   <p className='small'>Authors: {book.authors}</p>
                   <Card.Text>
                     {book.description?.substr(0, 50)}
                     {book.description?.length && "...   "}
-                    {book.description?.length && <small>read more</small>}
+                    {
+                      book.description?.length &&
+                      <BookModalContext.Consumer>
+                        {({show, setShow})=> (
+                          <SelectedBookContext.Consumer>
+                            {({setSelectedBook})=> (
+                              <small
+                                onClick={() => 
+                                  setSelectedBook(()=> {
+                                    setShow(!show);
+                                    return searchedBooks.filter(_book => _book.bookId === book.bookId)[0];
+                                  })
+                                }
+                                style={{ cursor: "pointer" }}
+                              >
+                                read more
+                              </small>
+                            )}
+                          </SelectedBookContext.Consumer>
+                        )}
+                      </BookModalContext.Consumer>
+                    }
                   </Card.Text>
                   {Auth.loggedIn() && (
                     <Button
                       disabled={savedBookIds?.some((savedBookId) => savedBookId === book.bookId)}
                       className='btn-block btn-info'
-                      onClick={() => handleSaveBook(book.bookId)}>
+                      onClick={() => {
+                        handleSaveBook(book.bookId)
+                      }}>
                       {savedBookIds?.some((savedBookId) => savedBookId === book.bookId)
                         ? 'This book has already been saved!'
                         : 'Save this Book!'}
