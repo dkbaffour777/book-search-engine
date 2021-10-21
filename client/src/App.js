@@ -24,7 +24,7 @@ const client = new ApolloClient({
 
 function App() {
   // book modal
-  const [show, setShow] = useReducer((show) => !show, true);
+  const [show, setShow] = useReducer((show) => !show, false);
 
   // selected book - when read more is clicked
   const [selectedBook, setSelectedBook] = useState(null);
