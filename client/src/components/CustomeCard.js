@@ -11,29 +11,31 @@ const CustomCard = ({book, allBooks, component, savedBookIds, handleDeleteBook, 
                 <Card.Title>{book.title}</Card.Title>
                 <p className='small'>Authors: {book.authors}</p>
                 <Card.Text>
-                    {book.description?.substr(0, 50)}
-                    {book.description?.length && "...   "}
                     {
-                        book.description?.length &&
-                        <BookModalContext.Consumer>
-                            {({ show, setShow }) => (
-                                <SelectedBookContext.Consumer>
-                                    {({ setSelectedBook }) => (
-                                        <small
-                                            onClick={() =>
-                                                setSelectedBook(() => {
-                                                    setShow(!show);
-                                                    return allBooks?.filter(_book => _book.bookId === book.bookId)[0];
-                                                })
-                                            }
-                                            style={{ cursor: "pointer" }}
-                                        >
-                                            read more
-                                        </small>
-                                    )}
-                                </SelectedBookContext.Consumer>
-                            )}
-                        </BookModalContext.Consumer>
+                        book.description?.length > 0 &&
+                        <>
+                            {book.description?.substr(0, 50)}
+                            {"...   "}
+                            <BookModalContext.Consumer>
+                                {({ show, setShow }) => (
+                                    <SelectedBookContext.Consumer>
+                                        {({ setSelectedBook }) => (
+                                            <small
+                                                onClick={() =>
+                                                    setSelectedBook(() => {
+                                                        setShow(!show);
+                                                        return allBooks?.filter(_book => _book.bookId === book.bookId)[0];
+                                                    })
+                                                }
+                                                style={{ cursor: "pointer" }}
+                                            >
+                                                read more
+                                            </small>
+                                        )}
+                                    </SelectedBookContext.Consumer>
+                                )}
+                            </BookModalContext.Consumer>
+                        </>
                     }
                 </Card.Text>
                 {/* Saved book button*/}
