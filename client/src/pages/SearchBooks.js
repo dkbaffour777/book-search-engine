@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation } from '@apollo/react-hooks';
 
-import { Jumbotron, Container, Col, Form, Button, Card, CardColumns } from 'react-bootstrap';
+import { Jumbotron, Container, Col, Form, Button, CardColumns } from 'react-bootstrap';
 
 import Auth from '../utils/auth';
 import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
 import { SAVE_BOOK } from '../utils/mutations';
+import CustomCard from '../components/CustomeCard';
 
 const SearchBooks = () => {
   // create state for holding returned google api data
   const [searchedBooks, setSearchedBooks] = useState([]);
+
   // create state for holding our search field data
   const [searchInput, setSearchInput] = useState('');
+
+  // store the searched item
+  const [searchedItem, setSearchedItem] = useState('');
 
   // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
@@ -24,7 +29,7 @@ const SearchBooks = () => {
   // learn more here: https://reactjs.org/docs/hooks-effect.html#effects-with-cleanup
   useEffect(() => {
     return () => saveBookIds(savedBookIds);
-  });
+  }, [savedBookIds]);
 
   // create method to search for books and set state on form submit
   const handleFormSubmit = async (event) => {
@@ -32,7 +37,7 @@ const SearchBooks = () => {
 
     if (!searchInput) {
       return false;
-    }
+    } else setSearchedItem(searchInput)
 
     try {
       const response = await searchGoogleBooks(searchInput);
@@ -47,7 +52,7 @@ const SearchBooks = () => {
         bookId: book.id,
         authors: book.volumeInfo.authors || ['No author to display'],
         title: book.volumeInfo.title,
-        description: book.volumeInfo.description,
+        description: book.volumeInfo.description || "",
         image: book.volumeInfo.imageLinks?.thumbnail || '',
         link: book.volumeInfo.infoLink || '',
       }));
@@ -73,7 +78,7 @@ const SearchBooks = () => {
 
     try {
       await saveBook({
-        variables: {...bookToSave}
+        variables: { ...bookToSave }
       });
 
       // if book successfully saves to user's account, save book id to state
@@ -111,34 +116,23 @@ const SearchBooks = () => {
       </Jumbotron>
 
       <Container>
-        <h2>
-          {searchedBooks.length
-            ? `Viewing ${searchedBooks.length} results:`
-            : 'Search for a book to begin'}
-        </h2>
+        {searchedBooks.length
+          ? <h2 className="pb-5">
+            Viewing {searchedBooks.length} results for
+            <span style={{ fontStyle: "italic", fontWeight: "200" }}> "{searchedItem}"</span>
+          </h2>
+          : <h2 className="text-center p-6" style={{ color: "rgba(0,0,0, .2)" }}>Search for a book to begin</h2>}
         <CardColumns>
           {searchedBooks.map((book) => {
             return (
-              <Card key={book.bookId} border='dark'>
-                {book.image ? (
-                  <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' />
-                ) : null}
-                <Card.Body>
-                  <Card.Title>{book.title}</Card.Title>
-                  <p className='small'>Authors: {book.authors}</p>
-                  <Card.Text>{book.description}</Card.Text>
-                  {Auth.loggedIn() && (
-                    <Button
-                      disabled={savedBookIds?.some((savedBookId) => savedBookId === book.bookId)}
-                      className='btn-block btn-info'
-                      onClick={() => handleSaveBook(book.bookId)}>
-                      {savedBookIds?.some((savedBookId) => savedBookId === book.bookId)
-                        ? 'This book has already been saved!'
-                        : 'Save this Book!'}
-                    </Button>
-                  )}
-                </Card.Body>
-              </Card>
+              <CustomCard
+                key={book.bookId}
+                book={book}
+                allBooks={searchedBooks}
+                component="searched book"
+                savedBookIds={savedBookIds}
+                handleSaveBook={handleSaveBook}
+              />
             );
           })}
         </CardColumns>

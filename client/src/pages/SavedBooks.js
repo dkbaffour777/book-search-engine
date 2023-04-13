@@ -1,12 +1,13 @@
 import React from 'react';
 import { useQuery, useMutation } from '@apollo/react-hooks';
-import { Jumbotron, Container, CardColumns, Card, Button } from 'react-bootstrap';
+import { Jumbotron, Container, CardColumns } from 'react-bootstrap';
 
 import { GET_ME } from '../utils/queries';
 import { REMOVE_BOOK } from '../utils/mutations';
 
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
+import CustomCard from '../components/CustomeCard';
 
 const SavedBooks = () => {
 
@@ -58,17 +59,13 @@ const SavedBooks = () => {
         <CardColumns>
           {userData.savedBooks?.map((book) => {
             return (
-              <Card key={book.bookId} border='dark'>
-                {book.image ? <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' /> : null}
-                <Card.Body>
-                  <Card.Title>{book.title}</Card.Title>
-                  <p className='small'>Authors: {book.authors}</p>
-                  <Card.Text>{book.description}</Card.Text>
-                  <Button className='btn-block btn-danger' onClick={() => handleDeleteBook(book.bookId)}>
-                    Delete this Book!
-                  </Button>
-                </Card.Body>
-              </Card>
+              <CustomCard
+                key={book.bookId}
+                book={book}
+                allBooks={userData.savedBooks}
+                component="saved book"
+                handleDeleteBook={handleDeleteBook}
+              />
             );
           })}
         </CardColumns>
